@@ -18,3 +18,9 @@ services:
     volumes:
       - ./volumes/grafana:/var/lib/grafana
     restart: unless-stopped
+
+  task_runner:
+    build: ./PyTasks
+    container_name: garden_pytasks
+    restart: unless-stopped
+    command: python3 -u main.py
