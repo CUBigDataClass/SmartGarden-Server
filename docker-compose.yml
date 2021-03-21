@@ -11,7 +11,7 @@ services:
 
   grafana:
     image: grafana/grafana:7.3.7
-    container_name: grafana
+    container_name: garden_grafana
     ports:
       - 3000:3000
     user: '472'
