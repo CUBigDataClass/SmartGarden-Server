@@ -19,7 +19,7 @@ services:
       - ./volumes/grafana:/var/lib/grafana
     restart: unless-stopped
 
-  task_runner:
+  pytasks:
     build: ./PyTasks
     container_name: garden_pytasks
     restart: unless-stopped
