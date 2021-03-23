@@ -31,12 +31,12 @@ def ping_current_weather():
     assert res.status_code == 200
     data = res.json()
     dt = datetime.fromtimestamp(data['dt'])
-    write = {
-        'open_weather_temp': data['main']['temp'],
-        'open_weather_humidity': data['main']['humidity'],
-        'open_weather_wind_speed': data['wind']['speed'],
-        'open_weather_cloud_cover': data['clouds']['all'],
-        'open_weather_daylight_hours': (data['sys']['sunset'] - data['sys']['sunrise']) / (60 * 60),
+    write = { # InfluxDB is picky about types
+        'open_weather_temp': float(data['main']['temp']),
+        'open_weather_humidity': int(data['main']['humidity']),
+        'open_weather_wind_speed': float(data['wind']['speed']),
+        'open_weather_cloud_cover': int(data['clouds']['all']),
+        'open_weather_daylight_hours': float((data['sys']['sunset'] - data['sys']['sunrise']) / (60 * 60)),
     }
     for key in write:
         point = Point(key).tag("host", "server").field("value", write[key]).time(dt, WritePrecision.S)
