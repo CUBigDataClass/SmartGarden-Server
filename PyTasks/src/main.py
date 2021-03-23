@@ -14,7 +14,7 @@ bucket = os.environ['BUCKET']
 
 client = InfluxDBClient(url=os.environ['DB_HOST'], token=token)
 write_api = client.write_api(write_options=SYNCHRONOUS)
-hostname = os.envoron['HOSTNAME']
+hostname = os.environ['HOSTNAME']
 
 # Initialize Slack WebHook
 webhook = WebhookClient(os.environ['WEBHOOK_URL'])
@@ -28,6 +28,7 @@ forecast_url = f'{open_weather_api_url}/data/2.5/forecast?{params}'
 current_weather_url = f'{open_weather_api_url}/data/2.5/weather?{params}'
 
 def ping_current_weather():
+    print('pinging weather api')
     res = requests.get(current_weather_url)
     assert res.status_code == 200
     data = res.json()
