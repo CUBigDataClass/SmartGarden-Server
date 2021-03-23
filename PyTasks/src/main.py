@@ -3,6 +3,7 @@ import time
 import requests
 import os
 from datetime import datetime
+import pytz
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 from slack_sdk.webhook import WebhookClient
@@ -32,7 +33,8 @@ def ping_current_weather():
     res = requests.get(current_weather_url)
     assert res.status_code == 200
     data = res.json()
-    dt = datetime.fromtimestamp(data['dt'])
+    dt = datetime.fromtimestamp(data['dt']).astimezone(pytz.utc)
+    print(dt)
     write = { # InfluxDB is picky about types
         'open_weather_temp': float(data['main']['temp']),
         'open_weather_humidity': int(data['main']['humidity']),
@@ -44,6 +46,7 @@ def ping_current_weather():
         point = Point(key).tag("host", hostname).field("value", write[key]).time(dt, WritePrecision.S)
         write_api.write(bucket, org, point)
 
+ping_current_weather()
 schedule.every(5).minutes.do(ping_current_weather)
 
 
