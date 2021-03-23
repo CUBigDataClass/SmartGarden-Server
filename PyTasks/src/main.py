@@ -1,26 +1,26 @@
 import schedule
 import time
 import requests
+import os
 from datetime import datetime
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 from slack_sdk.webhook import WebhookClient
 
 # Initialize Influx Client
-token = "bSxqkjOZfiS4Yw8qWYyolME1RbUr0SWKuKlJAQbzQUjiuwNs5DGxSu4L4Q_T5VKWtG6P6KO1XrwKGQMKT9wyYw=="
-org = "Falkreath Hold"
-bucket = "GardenBucket"
+token = os.environ['TOKEN']
+org = os.environ['ORG']
+bucket = os.environ['BUCKET']
 
-client = InfluxDBClient(url="http://namira.lan:8086", token=token)
+client = InfluxDBClient(url=os.environ['DB_HOST'], token=token)
 write_api = client.write_api(write_options=SYNCHRONOUS)
 
 # Initialize Slack WebHook
-url = "https://hooks.slack.com/services/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"
-webhook = WebhookClient(url)
+webhook = WebhookClient(os.environ['WEBHOOK_URL'])
 
 # Config OpenWeatherAPI
-key = '7b3b6150c34c662331a4bdd1ebb9d3e2'
-zip_code = 80124
+key = os.environ['OPEN_WEATHER_API_KEY']
+zip_code = os.environ['ZIP_CODE']
 open_weather_api_url = 'https://api.openweathermap.org'
 params = f'zip={zip_code}&appid={key}&units=metric'
 forecast_url = f'{open_weather_api_url}/data/2.5/forecast?{params}'
