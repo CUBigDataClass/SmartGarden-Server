@@ -14,6 +14,7 @@ bucket = os.environ['BUCKET']
 
 client = InfluxDBClient(url=os.environ['DB_HOST'], token=token)
 write_api = client.write_api(write_options=SYNCHRONOUS)
+hostname = os.envoron['HOSTNAME']
 
 # Initialize Slack WebHook
 webhook = WebhookClient(os.environ['WEBHOOK_URL'])
@@ -39,7 +40,7 @@ def ping_current_weather():
         'open_weather_daylight_hours': float((data['sys']['sunset'] - data['sys']['sunrise']) / (60 * 60)),
     }
     for key in write:
-        point = Point(key).tag("host", "server").field("value", write[key]).time(dt, WritePrecision.S)
+        point = Point(key).tag("host", hostname).field("value", write[key]).time(dt, WritePrecision.S)
         write_api.write(bucket, org, point)
 
 schedule.every(5).minutes.do(ping_current_weather)
