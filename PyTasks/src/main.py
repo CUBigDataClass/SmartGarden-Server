@@ -16,14 +16,7 @@ from slack_sdk.webhook import WebhookClient
 ##
 
 # Logging
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s-%(levelname)s: %(message)s')
-handler.setFormatter(formatter)
-root.addHandler(handler)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
 
 # Initialize Influx Client
 token = os.environ['TOKEN']
