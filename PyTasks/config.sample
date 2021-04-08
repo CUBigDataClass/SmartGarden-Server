@@ -12,6 +12,9 @@ SLACK_BOT_TOKEN=
 # Shinobi Config
 SHINOBI_TOKEN=
 
+# Home Assistant Config
+HOME_ASSISTANT_TOKEN=
+
 # Open Weather Config
 OPEN_WEATHER_API_KEY=12345ABCDE
 ZIP_CODE="80303"
