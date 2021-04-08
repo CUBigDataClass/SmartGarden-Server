@@ -1,0 +1,26 @@
+import requests
+import os
+import io
+from PIL import Image
+
+key = os.environ['SHINOBI_TOKEN']
+base_url = 'http://iris.lan:8080'
+monitor_id = 'tFQOqEJbXK'
+group_key = 'QqMhCbk4hz'
+
+IMAGE_DIR = "images"
+
+
+def JpegUrl(monitor_id, group_key):
+    return f'{base_url}/{key}/jpeg/{group_key}/{monitor_id}/s.jpg'
+
+
+def GetMonitorImage(monitor_id, group_key):
+    if not os.path.exists(IMAGE_DIR):
+        os.makedirs(IMAGE_DIR)
+    res = requests.get(JpegUrl(monitor_id, group_key))
+    assert res.status_code == 200
+    im = Image.open(io.BytesIO(res.content))
+    output_dir = os.path.join(IMAGE_DIR, f'{monitor_id}.jpg')
+    im.save(output_dir)
+    return output_dir

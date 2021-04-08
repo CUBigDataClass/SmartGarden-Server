@@ -1,5 +1,5 @@
-schedule	
+schedule
 requests
 slack_sdk
 influxdb_client
-
+pillow

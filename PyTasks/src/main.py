@@ -7,9 +7,10 @@ import pytz
 import schedule
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
-from slack_sdk.webhook import WebhookClient
 
 import Weather
+import Slack
+import Shinobi
 
 
 ##
@@ -27,9 +28,6 @@ bucket = os.environ['BUCKET']
 client = InfluxDBClient(url=os.environ['DB_HOST'], token=token)
 write_api = client.write_api(write_options=SYNCHRONOUS)
 hostname = os.environ['HOSTNAME']
-
-# Initialize Slack WebHook
-webhook = WebhookClient(os.environ['WEBHOOK_URL'])
 
 ##
 ## Current Weather
@@ -57,11 +55,23 @@ def PingForecast():
     forecast = Weather.FetchForecast()
     status = Weather.CheckForecast(forecast)
     # Send status to slack
-    response = webhook.send(text='2 day Forecast:\n' + status)
-    assert response.status_code == 200
-    assert response.body == "ok"
+    response = Slack.SendMessage(message='2 day Forecast:\n' + status)
 
 PingForecast()
+schedule.every().day.at("09:00").do(PingForecast)
+schedule.every().day.at("18:00").do(PingForecast)
+
+
+##
+## Shinobi (CCTV)
+##
+
+def PingShinobi():
+    logging.info('pinging forecast')
+    image_loc = Shinobi.GetMonitorImage('tFQOqEJbXK', 'QqMhCbk4hz')
+    Slack.UploadFile(image_loc, 'test.jpg')
+
+PingShinobi()
 schedule.every().day.at("09:00").do(PingForecast)
 schedule.every().day.at("18:00").do(PingForecast)
 

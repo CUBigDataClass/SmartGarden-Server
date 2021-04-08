@@ -7,6 +7,10 @@ HOSTNAME='config hostname' # Name for this machine
 
 # Slack Config
 WEBHOOK_URL=https://hooks.slack.com/services/abc123/abc123/abc123
+SLACK_BOT_TOKEN=
+
+# Shinobi Config
+SHINOBI_TOKEN=
 
 # Open Weather Config
 OPEN_WEATHER_API_KEY=12345ABCDE
