@@ -12,10 +12,15 @@ IMAGE_DIR = "images"
 
 
 def JpegUrl(monitor_id, group_key):
+    '''Generage url for a given monitor and group'''
     return f'{base_url}/{key}/jpeg/{group_key}/{monitor_id}/s.jpg'
 
 
 def GetMonitorImage(monitor_id, group_key):
+    '''
+    Get image and save to disk.
+    (Slack expects downloaded image, not in memory)
+    '''
     if not os.path.exists(IMAGE_DIR):
         os.makedirs(IMAGE_DIR)
     res = requests.get(JpegUrl(monitor_id, group_key))

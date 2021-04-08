@@ -21,6 +21,7 @@ current_weather_url = f'{open_weather_api_url}/data/2.5/weather'
 ##
 
 def FetchCurrentWeather():
+    '''Get current weather from OpenWeatherAPI'''
     res = requests.get(current_weather_url, params={
         'zip': '80124',
         'appid': key,
@@ -34,6 +35,7 @@ def FetchCurrentWeather():
 
 
 def ParseCurrentWeather(current_weather):
+    '''Renames and returns only the important fields from raw OpenWeatherAPI response'''
     return { # InfluxDB is picky about types
         'open_weather_temp': float(current_weather['main']['temp']),
         'open_weather_humidity': int(current_weather['main']['humidity']),
@@ -42,12 +44,12 @@ def ParseCurrentWeather(current_weather):
         'open_weather_daylight_hours': float((current_weather['sys']['sunset'] - current_weather['sys']['sunrise']) / (60 * 60)),
     }
 
-
 ##
 ## Forecast
 ##
 
 def FetchForecast():
+    '''Get 2-day hourly forcast via OneCall API'''
     res = requests.get(forecast_url, params={
         'appid': key,
         'lon': -104.8863,
@@ -63,6 +65,7 @@ def FetchForecast():
 
 
 def CheckForecast(forecast):
+    '''Generates a string showing a summary of the 2-day, hourly forecast.'''
     points = {
         'temp': '',
         'wind': '',
@@ -92,9 +95,7 @@ def CheckForecast(forecast):
             temp_status = '🥵'
         elif hour['temp'] > 28: # WARN: High Temp
             temp_status = '🔥'
-
         points['temp'] += temp_status
-
 
         wind_status = default_symbol
         # CRIT: High Wind
@@ -103,7 +104,6 @@ def CheckForecast(forecast):
         elif hour['wind_speed'] > 7 or hour['wind_gust'] > 10:
             # WARN: High Wind
             wind_status = '💨'
-
         points['wind'] += wind_status
 
         rain_status = default_symbol
