@@ -35,17 +35,8 @@ key = os.environ['OPEN_WEATHER_API_KEY']
 zip_code = os.environ['ZIP_CODE']
 open_weather_api_url = 'https://api.openweathermap.org'
 params = f'zip={zip_code}&appid={key}&units=metric'
-forecast_url = f'{open_weather_api_url}/data/2.5/forecast?{params}'
+forecast_url = f'{open_weather_api_url}/data/2.5/forecast/hourly?{params}'
 current_weather_url = f'{open_weather_api_url}/data/2.5/weather?{params}'
-
-
-def RunFailSafe(job, *args, **kwargs):
-    '''Catch all errors to avoid resetting schedule'''
-    try:
-        job(*args, **kwargs)
-    except Exception as e:
-        logging.exception(e)
-
 
 ##
 ## Current Weather
@@ -81,10 +72,62 @@ def PingCurrentWeather():
         write_api.write(bucket, org, point)
 
 
-RunFailSafe(PingCurrentWeather)
-schedule.every(5).minutes.do(RunFailSafe, PingCurrentWeather)
+PingCurrentWeather()
+schedule.every(5).minutes.do(PingCurrentWeather)
+
+##
+## Forecast
+##
+
+def FetchForecast():
+    res = requests.get(forecast_url)
+    if res.status_code != 200:
+        logging.error(res.status_code)
+        logging.error(res.content)
+    assert res.status_code == 200
+    return res.json()
+
+
+def CheckForecast(forecast):
+    four_day_warnings = []
+    weekday = datetime.now().weekday()
+    weekday_mapping = [
+        'Monday', 'Tuesday', 'Wednesday',
+        'Thursday', 'Friday', 'Saturday', 'Sunday'
+    ]
+    for i in range(4):
+        four_day_warnings.append({
+            'weekday': weekday_mapping[(weekday + i) % 7]
+        })
+
+    for hour in forecast['list']:
+        dt = hour['dt']
+        temp = hour['main']['temp']
+        weather = hour['weather']['main']
+        wind = hour['wind']['speed']
+
+        # if issue
+            # get weekday index from dt
+            # add error message to four_day_warnings
+    # return four_day_warnings
+
+
+def PingForecast():
+    logging.info('pinging forecast')
+    forecast = FetchForecast()
+    warnings = CheckForecast(forecast)
+    if warnings:
+        # send message to slack
+        pass
+    else:
+        logging.debug('No issues found in forecast.')
+
+
 
 
 while True:
-    schedule.run_pending()
+    try:
+        schedule.run_pending()
+    except Exception as e:
+        logging.exception(e)
     time.sleep(60) # wait one minute
