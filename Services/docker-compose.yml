@@ -1,0 +1,28 @@
+version: "3"
+services:
+    shinobi:
+        image: shinobisystems/shinobi:dev
+        container_name: Shinobi
+        environment:
+           - PLUGIN_KEYS={}
+           - SSL_ENABLED=false
+        volumes:
+           - ./data/config:/config
+           - ./data/customAutoLoad:/home/Shinobi/libs/customAutoLoad
+           - ./data/database:/var/lib/mysql
+           - ./data/videos:/home/Shinobi/videos
+           - ./data/plugins:/home/Shinobi/plugins
+           - ./data/streams:/dev/shm/streams
+           - /etc/localtime:/etc/localtime:ro
+        ports:
+           - 8080:8080
+        restart: unless-stopped
+
+  home_assistant:
+    image: homeassistant/home-assistant:stable
+    container_name: home_assistant
+    ports:
+      - 8123:8123
+    volumes:
+      - ./data/config:/config
+    network_mode: host
