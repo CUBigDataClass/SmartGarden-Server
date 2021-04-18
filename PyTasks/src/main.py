@@ -12,11 +12,9 @@ import Weather
 import Slack
 import Shinobi
 
-
-##
-## Config
-##
-
+'''
+Config
+'''
 # Logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
 
@@ -44,10 +42,6 @@ def PingCurrentWeather():
         write_api.write(bucket, org, point)
 
 
-PingCurrentWeather()
-schedule.every(5).minutes.do(PingCurrentWeather)
-
-
 def PingForecast():
     '''Check hourly 2-day forcast and send summary to Slack.'''
     logging.info('Checking hourly forecast')
@@ -55,11 +49,7 @@ def PingForecast():
     status = Weather.CheckForecast(forecast)
     # Send status to slack
     response = Slack.SendMessage(message='2 day Forecast:\n' + status)
-
-
-PingForecast()
-schedule.every().day.at("09:00").do(PingForecast)
-schedule.every().day.at("18:00").do(PingForecast)
+    # TODO: assert response.status == ok
 
 
 def PingShinobi():
@@ -70,14 +60,23 @@ def PingShinobi():
     Slack.UploadFile(image_loc, 'test.jpg')
 
 
-PingShinobi()
-schedule.every().day.at("09:00").do(PingForecast)
-schedule.every().day.at("18:00").do(PingForecast)
+def setSchedule():
+    PingCurrentWeather()
+    schedule.every(5).minutes.do(PingCurrentWeather)
+
+    PingForecast()
+    schedule.every().day.at("09:00").do(PingForecast)
+    schedule.every().day.at("18:00").do(PingForecast)
+
+    PingShinobi()
+    schedule.every().day.at("09:00").do(PingShinobi)
+    schedule.every().day.at("18:00").do(PingShinobi)
 
 
+setSchedule()
 while True:
     try:
         schedule.run_pending()
     except Exception as e:
         logging.exception(e)
-    time.sleep(60) # wait one minute
+    time.sleep(60)  # wait one minute
