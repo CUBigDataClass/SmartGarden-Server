@@ -4,7 +4,6 @@ from slack_sdk.webhook import WebhookClient
 from slack_sdk.errors import SlackApiError
 
 client = WebClient(token=os.environ['SLACK_BOT_TOKEN'])
-client = WebClient(token=token)
 # Initialize Slack WebHook
 webhook = WebhookClient(os.environ['WEBHOOK_URL'])
 

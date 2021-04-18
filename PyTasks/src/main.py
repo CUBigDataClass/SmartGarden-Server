@@ -47,8 +47,9 @@ def PingForecast():
     logging.info('Checking hourly forecast')
     forecast = Weather.FetchForecast()
     status = Weather.CheckForecast(forecast)
+    message = Weather.ForecastMessage(status)
     # Send status to slack
-    response = Slack.SendMessage(message='2 day Forecast:\n' + status)
+    response = Slack.SendMessage(message='2 day Forecast:\n' + message)
     # TODO: assert response.status == ok
 
 
@@ -73,10 +74,11 @@ def setSchedule():
     schedule.every().day.at("18:00").do(PingShinobi)
 
 
-setSchedule()
-while True:
-    try:
-        schedule.run_pending()
-    except Exception as e:
-        logging.exception(e)
-    time.sleep(60)  # wait one minute
+if __name__ == '__main__':
+    setSchedule()
+    while True:
+        try:
+            schedule.run_pending()
+        except Exception as e:
+            logging.exception(e)
+        time.sleep(60)  # wait one minute

@@ -2,7 +2,7 @@ import os
 import requests
 import logging
 import sys
-import time
+import re
 from datetime import datetime
 
 # Logging
@@ -16,9 +16,10 @@ forecast_url = f'{open_weather_api_url}/data/2.5/onecall'
 current_weather_url = f'{open_weather_api_url}/data/2.5/weather'
 
 
-##
-## Current Weather
-##
+'''
+Current Weather
+'''
+
 
 def FetchCurrentWeather():
     '''Get current weather from OpenWeatherAPI'''
@@ -36,7 +37,7 @@ def FetchCurrentWeather():
 
 def ParseCurrentWeather(current_weather):
     '''Renames and returns only the important fields from raw OpenWeatherAPI response'''
-    return { # InfluxDB is picky about types
+    return {  # InfluxDB is picky about types
         'open_weather_temp': float(current_weather['main']['temp']),
         'open_weather_humidity': int(current_weather['main']['humidity']),
         'open_weather_wind_speed': float(current_weather['wind']['speed']),
@@ -44,9 +45,11 @@ def ParseCurrentWeather(current_weather):
         'open_weather_daylight_hours': float((current_weather['sys']['sunset'] - current_weather['sys']['sunrise']) / (60 * 60)),
     }
 
-##
-## Forecast
-##
+
+'''
+Forecast
+'''
+
 
 def FetchForecast():
     '''Get 2-day hourly forcast via OneCall API'''
@@ -66,52 +69,72 @@ def FetchForecast():
 
 def CheckForecast(forecast):
     '''Generates a string showing a summary of the 2-day, hourly forecast.'''
-    points = {
-        'temp': '',
-        'wind': '',
-        'rain': '',
+    warnings = {}
+    time = ''
+
+    tracking = {
+        'temp_low': {
+            'W': lambda x: x['temp'] < 10,
+            'C': lambda x: x['temp'] < 0,
+        },
+        'temp_high': {
+            'W': lambda x: x['temp'] > 25,
+            'C': lambda x: x['temp'] > 30,
+        },
+        'high_wind': {
+            'W': lambda x: x['wind_speed'] > 7 or x['wind_gust'] > 10,
+            'C': lambda x: x['wind_speed'] > 12 or x['wind_gust'] > 15,
+        },
+        'rain': {
+            'W': lambda x: x['pop'] > 0,
+            'C': lambda x: x['pop'] >= 0.5,
+        }
     }
 
-    for hour in forecast['hourly']:
+    for hour in forecast['hourly']:  # Assumes forecast is sorted in datetime order
         dt = datetime.fromtimestamp(hour['dt'])
 
         weekday_map = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        if dt.hour == 0:
-            for key in points:
-                points[key] += f'|{weekday_map[dt.weekday()]}'
+        time += f'{weekday_map[dt.weekday()]}{dt.hour}'
 
-        if dt.hour % 6 == 0:
-            for key in points:
-                points[key] += f'|{dt.hour}|'
+        for metric in tracking:
+            if metric not in warnings:
+                warnings[metric] = ''
 
-        default_symbol = '・'
+            status = '.'
+            if 'W' in tracking[metric]:
+                if tracking[metric]['W'](hour):
+                    status = 'W'
+            if 'C' in tracking[metric]:
+                if tracking[metric]['C'](hour):
+                    status = 'C'
+            warnings[metric] += status
 
-        temp_status = default_symbol
-        if hour['temp'] < 0: # CRIT: Low Temp
-            temp_status = '🥶'
-        elif hour['temp'] < 10: # WARN: Low Temp
-            temp_status = '❄️'
-        elif hour['temp'] > 32: # CRIT: High Temp
-            temp_status = '🥵'
-        elif hour['temp'] > 28: # WARN: High Temp
-            temp_status = '🔥'
-        points['temp'] += temp_status
+    return {
+        'warnings': warnings,
+        'time': time
+    }
 
-        wind_status = default_symbol
-        # CRIT: High Wind
-        if hour['wind_speed'] > 12 or hour['wind_gust'] > 15:
-            wind_status = '🌪'
-        elif hour['wind_speed'] > 7 or hour['wind_gust'] > 10:
-            # WARN: High Wind
-            wind_status = '💨'
-        points['wind'] += wind_status
 
-        rain_status = default_symbol
-        if hour['pop'] > 0.5: # WARN: Rain
-            rain_status = '🌧'
-        points['rain'] += rain_status
+def SummarizeWarning(warning, time):
+    summaries = []
+    for x in re.finditer('W*[WC]C*W*', warning):
+        span = x.span()
+        start = time[span[0]]
+        end = time[min(span[1], len(time) - 1)]
+        summary = f'{start[0]} at {start[1]}:00 until {end[0]} at {end[1]}:00: {x.group(0)}'
+        summaries.append(summary)
+    return summaries
 
-    message = '\n'.join([
-        f'{k}: {v}' for k,v in points.items()
-    ])
-    return message
+
+def ForecastMessage(summary):
+    time = re.findall('([A-Za-z]+)(\d+)', summary['time'])
+    message_lines = []
+    for metric in summary['warnings']:
+        summaries = SummarizeWarning(summary['warnings'][metric], time)
+        if summaries:
+            message_lines.append(metric.upper())
+            message_lines += summaries + ['']
+
+    message_lines += ['```'] + [f'{k.upper():<9}: {v}' for k, v in summary['warnings'].items()] + ['```']
+    return '\n'.join(message_lines)
