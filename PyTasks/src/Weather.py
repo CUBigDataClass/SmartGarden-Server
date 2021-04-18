@@ -38,11 +38,11 @@ def FetchCurrentWeather():
 def ParseCurrentWeather(current_weather):
     '''Renames and returns only the important fields from raw OpenWeatherAPI response'''
     return {  # InfluxDB is picky about types
-        'open_weather_temp': float(current_weather['main']['temp']),
-        'open_weather_humidity': int(current_weather['main']['humidity']),
-        'open_weather_wind_speed': float(current_weather['wind']['speed']),
-        'open_weather_cloud_cover': int(current_weather['clouds']['all']),
-        'open_weather_daylight_hours': float((current_weather['sys']['sunset'] - current_weather['sys']['sunrise']) / (60 * 60)),
+        'temperature': current_weather['main']['temp'],
+        'humidity': current_weather['main']['humidity'],
+        'wind_speed': current_weather['wind']['speed'],
+        'cloud_cover': current_weather['clouds']['all'],
+        'daylight_hours': (current_weather['sys']['sunset'] - current_weather['sys']['sunrise']) / (60 * 60),
     }
 
 

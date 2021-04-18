@@ -39,7 +39,7 @@ def PingCurrentWeather():
     dt = datetime.fromtimestamp(current_weather['dt']).astimezone(pytz.utc)
     logging.info(dt)
     for key, value in Weather.ParseCurrentWeather(current_weather).items():
-        point = Point(key).tag("host", hostname).field("value", value).time(dt, WritePrecision.S)
+        point = Point(key).tag("host", hostname).tag('tag', 'Open_Weather_API').tag('subtag', 'API').field("value", float(value)).time(dt, WritePrecision.S)
         write_api.write(bucket, org, point)
 
 
