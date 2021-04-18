@@ -11,6 +11,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 import Weather
 import Slack
 import Shinobi
+import Query
 
 '''
 Config
@@ -49,8 +50,7 @@ def PingForecast():
     status = Weather.CheckForecast(forecast)
     message = Weather.ForecastMessage(status)
     # Send status to slack
-    response = Slack.SendMessage(message='2 day Forecast:\n' + message)
-    # TODO: assert response.status == ok
+    Slack.SendMessage(message='2 day Forecast:\n' + message)
 
 
 def PingShinobi():
@@ -61,7 +61,16 @@ def PingShinobi():
     Slack.UploadFile(image_loc, 'test.jpg')
 
 
-def setSchedule():
+def DailySummary():
+    message_lines = []
+    sunlight = Query.HoursOfSunlight()
+    message_lines.append(f'{sunlight:.1f} hours of sunlight in the last 24 hours')
+    temp_range = Query.TempRange()
+    message_lines.append(f'Temp range: {temp_range} Celcius')
+    Slack.SendMessage(message='\n'.join(message_lines))
+
+
+def SetSchedule():
     PingCurrentWeather()
     schedule.every(5).minutes.do(PingCurrentWeather)
 
@@ -71,11 +80,13 @@ def setSchedule():
 
     PingShinobi()
     schedule.every().day.at("09:00").do(PingShinobi)
-    schedule.every().day.at("18:00").do(PingShinobi)
+
+    DailySummary()
+    schedule.every().day.at("09:00").do(DailySummary)
 
 
 if __name__ == '__main__':
-    setSchedule()
+    SetSchedule()
     while True:
         try:
             schedule.run_pending()
