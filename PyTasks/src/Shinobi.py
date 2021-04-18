@@ -4,9 +4,9 @@ import io
 from PIL import Image
 
 key = os.environ['SHINOBI_TOKEN']
-base_url = 'http://iris.lan:8080'
-monitor_id = 'tFQOqEJbXK'
-group_key = 'QqMhCbk4hz'
+base_url = os.environ['SHINOBI_URL']
+monitor_id = os.environ['SHINOBI_MONITOR_ID']
+group_key = os.environ['SHINOBI_GROUP_KEY']
 
 IMAGE_DIR = "images"
 

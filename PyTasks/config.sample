@@ -11,9 +11,13 @@ SLACK_BOT_TOKEN=
 
 # Shinobi Config
 SHINOBI_TOKEN=
+SHINOBI_URL=http://shinobi.lan:8080
+SHINOBI_MONITOR_ID=
+SHINOBI_GROUP_KEY=
 
 # Home Assistant Config
 HOME_ASSISTANT_TOKEN=
+
 
 # Open Weather Config
 OPEN_WEATHER_API_KEY=12345ABCDE
