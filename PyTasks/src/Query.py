@@ -10,6 +10,7 @@ bucket = os.environ['BUCKET']
 client = InfluxDBClient(url=os.environ['DB_HOST'], token=token)
 query_api = client.query_api()
 
+
 def readResults(res):
     results = []
     for table in res:
@@ -19,8 +20,8 @@ def readResults(res):
 
 
 def HoursOfSunlight():
-    query = '''
-    from(bucket: "GardenBucket-Test")
+    query = f'from(bucket: "{bucket}")'
+    query += '''
       |> range(start: -1d, stop: now())
       |> filter(fn: (r) => r["_measurement"] == "light")
       |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
@@ -43,8 +44,8 @@ def HoursOfSunlight():
 
 def TempRange():
     f = 'min'
-    query = f'''
-    from(bucket: "GardenBucket-Test")
+    query = f'from(bucket: "{bucket}")'
+    query += '''
       |> range(start: -1d, stop: now())
       |> filter(fn: (r) => r["_measurement"] == "temperature")
       |> filter(fn: (r) => r["host"] == "pi")
@@ -58,8 +59,8 @@ def TempRange():
     min_temp = results[0][1]
 
     f = 'max'
-    query = f'''
-    from(bucket: "GardenBucket-Test")
+    query = f'from(bucket: "{bucket}")'
+    query += '''
       |> range(start: -1d, stop: now())
       |> filter(fn: (r) => r["_measurement"] == "temperature")
       |> filter(fn: (r) => r["host"] == "pi")
