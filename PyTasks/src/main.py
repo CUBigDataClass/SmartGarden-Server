@@ -57,7 +57,9 @@ def PingShinobi():
     '''Check Cameras and send picture to Slack.'''
     # TODO: Configure monitor_id and group_key in env variables.
     logging.info('Checking Shinobi')
-    image_loc = Shinobi.GetMonitorImage('tFQOqEJbXK', 'QqMhCbk4hz')
+    monitor_id = os.environ['SHINOBI_MONITOR_ID']
+    group_key = os.environ['SHINOBI_GROUP_KEY']
+    image_loc = Shinobi.GetMonitorImage(monitor_id, group_key)
     Slack.UploadFile(image_loc, 'test.jpg')
 
 
