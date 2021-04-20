@@ -43,14 +43,13 @@ def HoursOfSunlight():
 
 
 def TempRange():
-    f = 'min'
     query = f'from(bucket: "{bucket}")'
     query += '''
       |> range(start: -1d, stop: now())
       |> filter(fn: (r) => r["_measurement"] == "temperature")
       |> filter(fn: (r) => r["host"] == "pi")
       |> group(columns: ["_measurement"], mode: "by")
-      |> aggregateWindow(every: 1d, fn: {f}, createEmpty: false)
+      |> aggregateWindow(every: 1d, fn: min, createEmpty: false)
       |> last()
     '''
     results = query_api.query(org=org, query=query)
@@ -58,14 +57,13 @@ def TempRange():
     assert len(results) == 1
     min_temp = results[0][1]
 
-    f = 'max'
     query = f'from(bucket: "{bucket}")'
     query += '''
       |> range(start: -1d, stop: now())
       |> filter(fn: (r) => r["_measurement"] == "temperature")
       |> filter(fn: (r) => r["host"] == "pi")
       |> group(columns: ["_measurement"], mode: "by")
-      |> aggregateWindow(every: 1d, fn: {f}, createEmpty: false)
+      |> aggregateWindow(every: 1d, fn: max, createEmpty: false)
       |> last()
     '''
     results = query_api.query(org=org, query=query)
